@@ -1,41 +1,44 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-  name: Node.js CI
+ name: Node.js CI
 
-  on:
-    push:
-        branches: ["main"]
-    pull_request: 
-          branches: ["main", "dev"]
+on:
+  push:
+    branches: ["main"]
+  pull_request: 
+    branches: ["main", "dev"]
 
-  jobs:
-      build:
-          name: Backend test
-          runs-on: ubuntu-latest
+jobs:
+  build:
+    name: Backend test
+    runs-on: ubuntu-latest
 
-          defaults:
-              run:
-                  working-directory: ./quirknotes/backend
+    defaults:
+      run:
+        working-directory: ./quirknotes/backend
 
-          strategy:
-              matrix:
-                  node-version: [20.x]
-                  mongodb-version: ['6.0']
+    strategy:
+      matrix:
+        node-version: [20.x]
+        mongodb-version: ['6.0']
 
-          steps:
-              - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-              - name: Start MongoDB
-                uses: supercharge/mongodb-github-action@1.10.0
-                with:
-                  mongodb-version: ${{ matrix.mongodb-version }}
-                  mongodb-replica-set: test-rs
-                  mongodb-port: 27017
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-replica-set: test-rs
+          mongodb-port: 27017
 
-              - name: Use Node.js ${{ matrix.node-version }}
-                uses: actions/setup-node@v3
-                with:
-                  node-version: ${{ matrix.node-version }}
-              - run: npm i
-              - run: npm test
+      - name: Debug MongoDB Connection
+        run: mongo --host localhost --port 27017 --eval "printjson(db.serverStatus())"
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm i
+      - run: npm test
